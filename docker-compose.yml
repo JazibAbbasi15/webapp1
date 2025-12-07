@@ -24,7 +24,6 @@ services:
     working_dir: /app
     volumes:
       - ./user-frontend:/app
-    #command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     ports:
       - "3005:5173"
@@ -39,7 +38,6 @@ services:
     working_dir: /app
     volumes:
       - ./admin-frontend:/app
-    #command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     ports:
       - "3006:5174"
@@ -47,16 +45,11 @@ services:
       - ci-network
     depends_on:
       - backend-ci  
-  #selenium-tests:
-    #build:
-      #context: ./selenium-tests
-    #container_name: selenium-tests
-    #depends_on:
-      #- user-frontend-ci
-   # networks:
-      #- ci-network
-    
+
+  # selenium-tests (built in Jenkins, NOT here)
+  # so no need to define here.
 
 networks:
   ci-network:
+    name: ci-network      # <-- FIXED: network name stays constant
     driver: bridge
