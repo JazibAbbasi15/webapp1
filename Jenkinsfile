@@ -2,10 +2,11 @@ pipeline {
     agent { label 'ubuntu3' }
 
     environment {
-        DOCKER_NETWORK = 'assignment3new_ci-network'
+        DOCKER_NETWORK = 'ci-network'
     }
 
     stages {
+
         stage('Clone Main Repository') {
             steps {
                 git branch: 'main', url: 'https://github.com/Zillehuma626/ASSIGNMENT_3.git'
@@ -27,21 +28,35 @@ pipeline {
             }
         }
 
+        stage('Wait for Frontend to Start') {
+            steps {
+                script {
+                    sh '''
+                    echo "Waiting for user-frontend-ci (5173) to be ready..."
+
+                    while ! sudo docker run --rm --network=ci-network busybox nc -z user-frontend-ci 5173; do
+                        echo "Frontend not ready... retrying..."
+                        sleep 2
+                    done
+
+                    echo "Frontend is UP!"
+                    '''
+                }
+            }
+        }
+
         stage('Run Selenium Tests') {
             steps {
                 dir('selenium-tests') {
                     sh '''
-                    # Wait until frontend is ready
-                    while ! nc -z user-frontend-ci 5173; do
-                        echo "Waiting for frontend..."
-                        sleep 2
-                    done
-
-                    # Build Selenium test image
+                    echo "Building Selenium Test Image..."
                     sudo docker build -t selenium-tests .
 
-                    # Run Selenium container inside Docker network
-                    sudo docker run --rm --network=${DOCKER_NETWORK} -e BASE_URL="http://user-frontend-ci:5173" selenium-tests
+                    echo "Running Selenium Tests..."
+                    sudo docker run --rm \
+                        --network=ci-network \
+                        -e BASE_URL="http://user-frontend-ci:5173" \
+                        selenium-tests
                     '''
                 }
             }
@@ -49,7 +64,7 @@ pipeline {
 
         stage('Show Logs') {
             steps {
-                sh 'sudo docker compose logs --tail=50'
+                sh 'sudo docker compose logs --tail=100'
             }
         }
     }
