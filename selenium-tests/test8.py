@@ -20,7 +20,7 @@ wait = WebDriverWait(driver, 15)
 #os.makedirs("screenshots", exist_ok=True)
 
 # ---------------- OPEN SITE ---------------- #
-driver.get("http://3.90.201.45:3005/login")
+driver.get("http://user-frontend-ci:5173/login")
 time.sleep(1)
 #driver.save_screenshot("screenshots/01_open_site.png")
 
